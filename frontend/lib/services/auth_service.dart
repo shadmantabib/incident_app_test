@@ -9,14 +9,26 @@ class AuthService {
   AuthService._internal();
   
   // Save user session
-  Future<void> saveUserSession(User user) async {
-    final prefs = await SharedPreferences.getInstance();
-    if (user.id != null) {
-      await prefs.setInt(Constants.userIdKey, user.id!);
-    }
-    await prefs.setString(Constants.userEmailKey, user.email ?? '');
-    await prefs.setBool(Constants.isLoggedInKey, true);
+  Future<String?> getUserToken() async {
+  final prefs = await SharedPreferences.getInstance();
+  return prefs.getString('auth_token');
+}
+
+// And ensure this is being set in your saveUserSession method:
+Future<void> saveUserSession(User user) async {
+  final prefs = await SharedPreferences.getInstance();
+  if (user.id != null) {
+    await prefs.setInt(Constants.userIdKey, user.id!);
   }
+  await prefs.setString(Constants.userEmailKey, user.email ?? '');
+  
+  // Store the token
+  if (user.token != null) {
+    await prefs.setString('auth_token', user.token!);
+  }
+  
+  await prefs.setBool(Constants.isLoggedInKey, true);
+}
   
   // Check if user is logged in
   Future<bool> isLoggedIn() async {
@@ -29,6 +41,7 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getInt(Constants.userIdKey);
   }
+
   
   // Get current user email
   Future<String?> getUserEmail() async {

@@ -112,8 +112,11 @@ class ApiService {
               ? int.tryParse(responseData["user_id"]) 
               : responseData["user_id"];
           
-          // Save user session
-          final user = User(id: userId, email: email);
+          // Extract the token from the response
+          final token = responseData["access_token"];
+          
+          // Save user session with token
+          final user = User(id: userId, email: email, token: token);
           await AuthService().saveUserSession(user);
           
           return ApiResponse(
@@ -238,18 +241,20 @@ class ApiService {
     required String filePath,
   }) async {
     try {
-      // Get current user ID
-      final userId = await AuthService().getUserId();
-      if (userId == null) {
-        return ApiResponse(
-          success: false,
-          errorMessage: "User not logged in",
-        );
-      }
-      
-      print("Uploading incident at: ${Constants.baseUrl}${Constants.incidentsEndpoint}");
-      final url = Uri.parse("${Constants.baseUrl}${Constants.incidentsEndpoint}");
-      var request = http.MultipartRequest('POST', url);
+    // Get current user token - This is missing in your current implementation
+    final token = await AuthService().getUserToken(); // Add this method to AuthService
+    if (token == null) {
+      return ApiResponse(
+        success: false,
+        errorMessage: "Not authenticated",
+      );
+    }
+    
+    final url = Uri.parse("${Constants.baseUrl}${Constants.incidentsEndpoint}");
+    var request = http.MultipartRequest('POST', url);
+    
+    // Add Authorization header
+    request.headers['Authorization'] = 'Bearer $token'; // Add this line
           // Add this code to follow redirects
       request.followRedirects = true;
       request.persistentConnection = true;
