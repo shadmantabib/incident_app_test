@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Admin Login</title>
+    <script>
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const result = document.getElementById('result');
+            
+            try {
+                const response = await fetch('http://127.0.0.1:8000/admin/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    result.innerHTML = 'Login successful! Token: ' + data.access_token;
+                    localStorage.setItem('adminToken', data.access_token);
+                } else {
+                    result.innerHTML = 'Login failed: ' + data.detail;
+                }
+            } catch (error) {
+                result.innerHTML = 'Error: ' + error.message;
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Test Admin Login</h1>
+    <div>
+        <label for="email">Email:</label>
+        <input type="email" id="email" value="admin@example.com">
+    </div>
+    <div>
+        <label for="password">Password:</label>
+        <input type="password" id="password" value="admin123">
+    </div>
+    <button onclick="login()">Login</button>
+    <div id="result"></div>
+</body>
+</html>

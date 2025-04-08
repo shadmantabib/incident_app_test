@@ -1,0 +1,56 @@
+  +-----------+          +-------------+          +---------+         +--------------+
+  |  Flutter  |          |    FastAPI  |          |Services |         |    MySQL     |
+  +-----+-----+          +------+------+          +----+----+         +------+-------+
+        |                       |                       |                    |
+        | 1) Register          |                       |                    |
+        |--------------------->| (auth_router.py)       |                    |
+        | (POST /auth/register)|                       |                    |
+        |                      | 2) Insert user into DB |                    |
+        |                      |------------------------>| (auth_service?)    |
+        |                      |                        | - hash_password()   |
+        |                      |                        | - add user to DB    |
+        |                      |                        |-------------------->|
+        |                      |                        |                    |
+        |                      | 3) Return response     |                    |
+        |                      |<------------------------|                    |
+        |<---------------------|                        |                    |
+        |   "User registered"  |                       |                    |
+        |                      |                       |                    |
+        | 4) Login             |                       |                    |
+        |--------------------->| (auth_router.py)       |                    |
+        | (POST /auth/login)   |                       |                    |
+        |                      | 5) Validate user/pwd   |                    |
+        |                      |------------------------>| (auth_service?)    |
+        |                      |                        | - verify_password() |
+        |                      |                        | - fetch user from DB|
+        |                      |                        |-------------------->|
+        |                      |                        |                    |
+        |                      | 6) Return response     |                    |
+        |                      |<------------------------|                    |
+        |<---------------------|                        |                    |
+        |   "Login successful" |                       |                    |
+        |                      |                       |                    |
+        | 7) Submit Incident   |                       |                    |
+        |   w/File             |                       |                    |
+        |(POST /incidents/upload multipart form-data)  |                    |
+        |--------------------->| (incident_router.py)   |                    |
+        |   {title, desc, etc} |                       |                    |
+        |   file=some_image.jpg|                       |                    |
+        |                      | 8) Save file to disk   |                    |
+        |                      |------------------------>| (incident_service.py)
+        |                      |                        | - save_file_to_local_disk()
+        |                      |                        |  -> get unique filename
+        |                      |                        |  -> write file in /uploads
+        |                      |                        |<- - - - - - - - - - - - - - 
+        |                      |         file_path       |                    
+        |                      | 9) Insert Incident data |                    
+        |                      |   w/ file_path         |                    
+        |                      |------------------------>| (incident_service) 
+        |                      |                        | - Insert row in DB          
+        |                      |                        |-------------------->|
+        |                      |                        |                    |
+        |                      | 10) Return new ID, etc.|                    |
+        |                      |<------------------------|                    |
+        |<---------------------|                        |                    |
+        | "Incident reported"  |                       |                    |
+        +----------------------+                       +--------------------+

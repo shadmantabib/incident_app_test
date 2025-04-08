@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incident Reporting - Admin Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #4e73df;
+            --secondary-color: #858796;
+            --success-color: #1cc88a;
+            --danger-color: #e74a3b;
+            --warning-color: #f6c23e;
+            --info-color: #36b9cc;
+        }
+        
+        body {
+            padding-top: 0;
+            background-color: #f8f9fc;
+        }
+        
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 2rem;
+            background-color: #fff;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.15rem 1.75rem rgba(0, 0, 0, 0.15);
+        }
+        
+        .admin-container {
+            display: none;
+        }
+        
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(to bottom, var(--primary-color), #224abe);
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 1rem;
+            margin-bottom: 0.2rem;
+            border-radius: 0.35rem;
+        }
+        
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            color: #fff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar .nav-link i {
+            margin-right: 0.5rem;
+        }
+        
+        .logo {
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 700;
+            padding: 1.5rem 1rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .main-content {
+            min-height: 100vh;
+            padding: 1.5rem;
+        }
+        
+        .top-bar {
+            background-color: #fff;
+            box-shadow: 0 0.15rem 1.75rem rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.35rem;
+        }
+        
+        .card {
+            box-shadow: 0 0.15rem 1.75rem rgba(0, 0, 0, 0.05);
+            margin-bottom: 1.5rem;
+            border: none;
+            border-radius: 0.35rem;
+        }
+        
+        .card-header {
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+        
+        .incident-item {
+            transition: transform 0.2s;
+        }
+        
+        .incident-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        
+        .status-submitted, .status-pending {
+            color: var(--warning-color);
+        }
+        
+        .status-under_process, .status-in_progress {
+            color: var(--info-color);
+        }
+        
+        .status-resolved {
+            color: var(--success-color);
+        }
+        
+        .status-rejected {
+            color: var(--danger-color);
+        }
+        
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+        
+        .dropdown-menu-end {
+            right: 0;
+            left: auto;
+        }
+        
+        .nav-tabs .nav-link {
+            color: var(--secondary-color);
+            font-weight: 600;
+        }
+        
+        .nav-tabs .nav-link.active {
+            color: var(--primary-color);
+            border-bottom: 2px solid var(--primary-color);
+        }
+        
+        .table-hover tbody tr:hover {
+            background-color: rgba(78, 115, 223, 0.05);
+        }
+        
+        video {
+            max-width: 100%;
+            border-radius: 4px;
+        }
+        
+        .admin-level-operator {
+            background-color: var(--info-color);
+            color: white;
+        }
+        
+        .admin-level-admin {
+            background-color: var(--danger-color);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Form -->
+    <div id="loginForm" class="login-container">
+        <h2 class="text-center mb-4">Incident Reporting Admin</h2>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" required>
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password" required>
+        </div>
+        <button id="loginBtn" class="btn btn-primary w-100">Login</button>
+        <div id="loginError" class="text-danger mt-2"></div>
+    </div>
+    
+    <!-- Admin Dashboard -->
+    <div id="adminDashboard" class="admin-container">
+        <div class="container-fluid">
+            <div class="row">
+                <!-- Sidebar -->
+                <div class="col-md-2 sidebar p-0">
+                    <div class="logo">
+                        <i class="fas fa-shield-alt"></i> Incident Admin
+                    </div>
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link active" href="#dashboard" data-bs-toggle="tab">
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#incidents" data-bs-toggle="tab">
+                                <i class="fas fa-exclamation-triangle"></i> Incidents
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#users" data-bs-toggle="tab">
+                                <i class="fas fa-users"></i> Users
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#reports" data-bs-toggle="tab">
+                                <i class="fas fa-chart-bar"></i> Reports
+                            </a>
+                        </li>
+                        <li class="nav-item mt-auto">
+                            <a class="nav-link" href="#" id="logoutBtn">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- Main Content -->
+                <div class="col-md-10 main-content">
+                    <!-- Top Bar -->
+                    <div class="top-bar d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Welcome, <span id="adminUsername">Admin</span></h5>
+                        <div class="d-flex align-items-center">
+                            <span id="adminLevelBadge" class="badge admin-level-admin me-3">Admin</span>
+                            <div class="dropdown">
+                                <a class="dropdown-toggle text-decoration-none" href="#" role="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <div class="avatar" id="avatarInitial">A</div>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-user-circle me-2"></i>Profile</a></li>
+                                    <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Settings</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" id="logoutDropdownBtn"><i class="fas fa-sign-out-alt me-2"></i>Logout</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Tab Content -->
+                    <div class="tab-content">
+                        <!-- Dashboard Tab -->
+                        <div class="tab-pane fade show active" id="dashboard">
+                            <h3 class="mb-4">Dashboard Overview</h3>
+                            <div id="dashboardStats">
+                                <div class="text-center py-5">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-2">Loading dashboard data...</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Incidents Tab -->
+                        <div class="tab-pane fade" id="incidents">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h3>Incident Management</h3>
+                                <button class="btn btn-primary btn-sm" id="exportIncidentsBtn">
+                                    <i class="fas fa-download me-1"></i> Export Data
+                                </button>
+                            </div>
+                            
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <i class="fas fa-search me-1"></i> Filter Incidents
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <input type="text" id="incidentSearch" class="form-control" placeholder="Search by title, description, or ID...">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <select id="statusFilter" class="form-select">
+                                                <option value="all">All Statuses</option>
+                                                <option value="submitted">Submitted</option>
+                                                <option value="under_process">Under Process</option>
+                                                <option value="resolved">Resolved</option>
+                                                <option value="rejected">Rejected</option>
+                                                <!-- Keep old values for backward compatibility -->
+                                                <option value="pending">Pending (Old)</option>
+                                                <option value="in_progress">In Progress (Old)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="card">
+                                <div class="card-header">
+                                    <i class="fas fa-list me-1"></i> Incidents List
+                                </div>
+                                <div class="card-body">
+                                    <div id="incidentsList">
+                                        <div class="text-center py-5">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                            <p class="mt-2">Loading incidents...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Users Tab -->
+                        <div class="tab-pane fade" id="users">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h3>User Management</h3>
+                                <button class="btn btn-primary btn-sm" id="addUserBtn">
+                                    <i class="fas fa-user-plus me-1"></i> Add New User
+                                </button>
+                            </div>
+                            
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <i class="fas fa-search me-1"></i> Search Users
+                                </div>
+                                <div class="card-body">
+                                    <input type="text" id="userSearch" class="form-control" placeholder="Search by email or ID...">
+                                </div>
+                            </div>
+                            
+                            <div class="card">
+                                <div class="card-header">
+                                    <i class="fas fa-users me-1"></i> Users List
+                                </div>
+                                <div class="card-body">
+                                    <div id="usersList">
+                                        <div class="text-center py-5">
+                                            <div class="spinner-border text-primary" role="status">
+                                                <span class="visually-hidden">Loading...</span>
+                                            </div>
+                                            <p class="mt-2">Loading users...</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Reports Tab -->
+                        <div class="tab-pane fade" id="reports">
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <h3>Incident Reports</h3>
+                                <button class="btn btn-primary btn-sm" id="exportReportBtn">
+                                    <i class="fas fa-download me-1"></i> Export to CSV
+                                </button>
+                            </div>
+                            
+                            <div class="card mb-4">
+                                <div class="card-header">
+                                    <i class="fas fa-filter me-1"></i> Filter Reports
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <select id="reportStatusFilter" class="form-select">
+                                                <option value="">All Statuses</option>
+                                                <option value="submitted">Submitted</option>
+                                                <option value="under_process">Under Process</option>
+                                                <option value="resolved">Resolved</option>
+                                                <option value="rejected">Rejected</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6 text-end">
+                                            <button id="generateReportBtn" class="btn btn-primary">Generate Report</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="row" id="reportStats">
+                                <!-- Report statistics will be loaded here -->
+                                <div class="text-center py-5">
+                                    <p>Please generate a report to view statistics</p>
+                                </div>
+                            </div>
+                            
+                            <div class="card">
+                                <div class="card-header">
+                                    <i class="fas fa-table me-1"></i> Incidents
+                                </div>
+                                <div class="card-body">
+                                    <div id="reportIncidentsList">
+                                        <!-- Report incidents will be loaded here -->
+                                        <div class="text-center py-5">
+                                            <p>Please generate a report to view incidents</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Incident Detail Modal -->
+    <div class="modal fade" id="incidentModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Incident Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="incidentModalBody">
+                    <!-- Incident details will be loaded here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <div class="dropdown d-inline-block">
+                        <button class="btn btn-primary dropdown-toggle" type="button" id="statusDropdown" data-bs-toggle="dropdown">
+                            Update Status
+                        </button>
+                        <ul class="dropdown-menu" id="statusDropdownMenu">
+                            <li><a class="dropdown-item status-update" data-status="submitted" href="#">Submitted</a></li>
+                            <li><a class="dropdown-item status-update" data-status="under_process" href="#">Under Process</a></li>
+                            <li><a class="dropdown-item status-update" data-status="resolved" href="#">Resolved</a></li>
+                            <li><a class="dropdown-item status-update" data-status="rejected" href="#">Rejected</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add/Edit User Modal -->
+    <div class="modal fade" id="userModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="userModalTitle">Add New User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="userForm">
+                        <input type="hidden" id="userId">
+                        <div class="mb-3">
+                            <label for="userEmail" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="userEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userPassword" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="userPassword" required>
+                            <small class="text-muted">Leave blank when editing to keep current password.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="userAdminLevel" class="form-label">Admin Level</label>
+                            <select class="form-select" id="userAdminLevel">
+                                <option value="0">Regular User</option>
+                                <option value="1">Operator</option>
+                                <option value="2">Admin</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="saveUserBtn">Save User</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Status Update Toast -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+        <div id="statusToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i class="fas fa-check-circle text-success me-2"></i>
+                <strong class="me-auto">Success</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="toastMessage">
+                Status updated successfully!
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.0/dist/chart.min.js"></script>
+    <script src="/admin-static/admin.js"></script>
+</body>
+</html>
