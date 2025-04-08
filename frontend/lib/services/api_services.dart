@@ -250,7 +250,9 @@ class ApiService {
       print("Uploading incident at: ${Constants.baseUrl}${Constants.incidentsEndpoint}");
       final url = Uri.parse("${Constants.baseUrl}${Constants.incidentsEndpoint}");
       var request = http.MultipartRequest('POST', url);
-      
+          // Add this code to follow redirects
+      request.followRedirects = true;
+      request.persistentConnection = true;
       // Add form fields
       request.fields['title'] = title;
       request.fields['description'] = description;
@@ -273,12 +275,15 @@ class ApiService {
       var response = await http.Response.fromStream(streamedResponse);
       
       print("Upload incident response status: ${response.statusCode}");
-      print("Upload incident response body: ${response.body}");
+      print("Upload incident response body: '${response.body}'");
       
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseData = json.decode(response.body);
-        final incidentId = responseData["id"]?.toString() ?? responseData["incident_id"]?.toString();
-        final mediaUrl = responseData["media_url"];
+        final responseData = response.body.isNotEmpty 
+            ? json.decode(response.body) 
+            : {'id': 'unknown', 'media_url': filePath};
+            
+        final incidentId = responseData["id"]?.toString() ?? responseData["incident_id"]?.toString() ?? "unknown";
+        final mediaUrl = responseData["media_url"] ?? filePath;
         
         return ApiResponse(
           success: true,
@@ -294,10 +299,14 @@ class ApiService {
       } else {
         String errorMessage;
         try {
-          final errorData = json.decode(response.body);
-          errorMessage = errorData["detail"] ?? "Failed to upload incident: ${response.statusCode}";
+          if (response.body.isNotEmpty) {
+            final errorData = json.decode(response.body);
+            errorMessage = errorData["detail"] ?? "Failed to upload incident: ${response.statusCode}";
+          } else {
+            errorMessage = "Failed to upload incident: Empty response (${response.statusCode})";
+          }
         } catch (e) {
-          errorMessage = "Failed to upload incident: ${response.statusCode}";
+          errorMessage = "Failed to parse error response: ${response.statusCode}, Body: '${response.body}'";
         }
         
         return ApiResponse(
@@ -363,12 +372,15 @@ class ApiService {
       var response = await http.Response.fromStream(streamedResponse);
       
       print("Upload video incident response status: ${response.statusCode}");
-      print("Upload video incident response body: ${response.body}");
+      print("Upload video incident response body: '${response.body}'");
       
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseData = json.decode(response.body);
-        final incidentId = responseData["id"]?.toString() ?? responseData["incident_id"]?.toString();
-        final videoUrl = responseData["video_url"];
+        final responseData = response.body.isNotEmpty 
+            ? json.decode(response.body) 
+            : {'id': 'unknown', 'video_url': videoPath};
+            
+        final incidentId = responseData["id"]?.toString() ?? responseData["incident_id"]?.toString() ?? "unknown";
+        final videoUrl = responseData["video_url"] ?? videoPath;
         
         return ApiResponse(
           success: true,
@@ -384,10 +396,14 @@ class ApiService {
       } else {
         String errorMessage;
         try {
-          final errorData = json.decode(response.body);
-          errorMessage = errorData["detail"] ?? "Failed to upload video incident: ${response.statusCode}";
+          if (response.body.isNotEmpty) {
+            final errorData = json.decode(response.body);
+            errorMessage = errorData["detail"] ?? "Failed to upload video incident: ${response.statusCode}";
+          } else {
+            errorMessage = "Failed to upload video incident: Empty response (${response.statusCode})";
+          }
         } catch (e) {
-          errorMessage = "Failed to upload video incident: ${response.statusCode}";
+          errorMessage = "Failed to parse error response: ${response.statusCode}, Body: '${response.body}'";
         }
         
         return ApiResponse(
@@ -443,11 +459,14 @@ class ApiService {
       ).timeout(const Duration(seconds: 15));
       
       print("Create livestream incident response status: ${response.statusCode}");
-      print("Create livestream incident response body: ${response.body}");
+      print("Create livestream incident response body: '${response.body}'");
       
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseData = json.decode(response.body);
-        final incidentId = responseData["id"]?.toString() ?? responseData["incident_id"]?.toString();
+        final responseData = response.body.isNotEmpty 
+            ? json.decode(response.body) 
+            : {'id': 'unknown'};
+            
+        final incidentId = responseData["id"]?.toString() ?? responseData["incident_id"]?.toString() ?? "unknown";
         
         return ApiResponse(
           success: true,
@@ -460,10 +479,21 @@ class ApiService {
           ),
         );
       } else {
-        final errorData = json.decode(response.body);
+        String errorMessage;
+        try {
+          if (response.body.isNotEmpty) {
+            final errorData = json.decode(response.body);
+            errorMessage = errorData["detail"] ?? "Failed to create livestream incident: ${response.statusCode}";
+          } else {
+            errorMessage = "Failed to create livestream incident: Empty response (${response.statusCode})";
+          }
+        } catch (e) {
+          errorMessage = "Failed to parse error response: ${response.statusCode}, Body: '${response.body}'";
+        }
+        
         return ApiResponse(
           success: false,
-          errorMessage: errorData["detail"] ?? "Failed to create livestream incident: ${response.statusCode}",
+          errorMessage: errorMessage,
         );
       }
     } on SocketException {
@@ -540,11 +570,14 @@ class ApiService {
       var response = await http.Response.fromStream(streamedResponse);
       
       print("Upload multiple files incident response status: ${response.statusCode}");
-      print("Upload multiple files incident response body: ${response.body}");
+      print("Upload multiple files incident response body: '${response.body}'");
       
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseData = json.decode(response.body);
-        final incidentId = responseData["id"]?.toString() ?? responseData["incident_id"]?.toString();
+        final responseData = response.body.isNotEmpty 
+            ? json.decode(response.body) 
+            : {'id': 'unknown'};
+            
+        final incidentId = responseData["id"]?.toString() ?? responseData["incident_id"]?.toString() ?? "unknown";
         
         return ApiResponse(
           success: true,
@@ -559,10 +592,14 @@ class ApiService {
       } else {
         String errorMessage;
         try {
-          final errorData = json.decode(response.body);
-          errorMessage = errorData["detail"] ?? "Failed to upload multiple files: ${response.statusCode}";
+          if (response.body.isNotEmpty) {
+            final errorData = json.decode(response.body);
+            errorMessage = errorData["detail"] ?? "Failed to upload multiple files: ${response.statusCode}";
+          } else {
+            errorMessage = "Failed to upload multiple files: Empty response (${response.statusCode})";
+          }
         } catch (e) {
-          errorMessage = "Failed to upload multiple files: ${response.statusCode}";
+          errorMessage = "Failed to parse error response: ${response.statusCode}, Body: '${response.body}'";
         }
         
         return ApiResponse(

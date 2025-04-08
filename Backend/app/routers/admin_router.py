@@ -68,6 +68,20 @@ def get_all_incidents(
     incidents = query.order_by(desc(models.Incident.created_at)).all()
     return incidents
 
+# @router.get("/incidents", response_model=List[schemas.Incident])
+# def get_all_incidents(
+#     status: Optional[str] = None,
+#     db: Session = Depends(get_db)
+# ):
+#     query = db.query(models.Incident)
+    
+#     if status and status != "all":
+#         query = query.filter(models.Incident.status == status)
+    
+#     incidents = query.order_by(desc(models.Incident.created_at)).all()
+#     return incidents
+
+
 # Get specific incident
 @router.get("/incidents/{incident_id}", response_model=schemas.Incident)
 def get_incident(

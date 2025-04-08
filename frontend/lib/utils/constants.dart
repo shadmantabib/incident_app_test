@@ -16,13 +16,13 @@ class Constants {
     }
   }
   
-  // API endpoints
+  // API endpoints - adding trailing slashes
   static const String registerEndpoint = "/auth/register";
   static const String loginEndpoint = "/auth/login";
-  static const String incidentsEndpoint = "/incidents";
-  static const String uploadEndpoint = "/incidents";  // Single file endpoint
-  static const String multiUploadEndpoint = "/incidents/multiple";  // Multiple files endpoint
-  static const String livestreamEndpoint = "/incidents/livestream";  // Livestream endpoint
+  static const String incidentsEndpoint = "/incidents/"; // Added trailing slash
+  static const String uploadEndpoint = "/incidents/";  // Added trailing slash
+  static const String multiUploadEndpoint = "/incidents/multiple/";  // Added trailing slash
+  static const String livestreamEndpoint = "/incidents/livestream/";  // Added trailing slash
   
   // Shared preferences keys
   static const String userIdKey = "user_id";

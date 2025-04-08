@@ -28,48 +28,50 @@ async def create_incident(
     latitude: float = Form(...),
     longitude: float = Form(...),
     media_file: Optional[UploadFile] = File(None),
-    video_file: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     current_user: models.User = Depends(get_current_user)
 ):
-    """Create a new incident with optional media and video attachments"""
-    
-    # Create incident object
-    incident = models.Incident(
-        user_id=current_user.id,
-        title=title,
-        description=description,
-        latitude=latitude,
-        longitude=longitude,
-        status="submitted"  # Initial status
-    )
-    
-    # Handle image upload if provided
-    if media_file and media_file.filename:
-        file_extension = os.path.splitext(media_file.filename)[1]
-        filename = f"{uuid.uuid4()}{file_extension}"
-        file_path = os.path.join("uploads", filename)
+    """Create a new incident with media attachment"""
+    try:
+        # Create incident object
+        incident = models.Incident(
+            user_id=current_user.id,
+            title=title,
+            description=description,
+            latitude=latitude,
+            longitude=longitude,
+            status="submitted"  # Initial status
+        )
         
-        with open(file_path, "wb") as buffer:
-            buffer.write(await media_file.read())
+        # Handle image upload if provided
+        if media_file and media_file.filename:
+            try:
+                file_extension = os.path.splitext(media_file.filename)[1]
+                filename = f"{uuid.uuid4()}{file_extension}"
+                file_path = os.path.join("uploads", filename)
+                
+                # Make sure uploads directory exists
+                os.makedirs("uploads", exist_ok=True)
+                
+                with open(file_path, "wb") as buffer:
+                    buffer.write(await media_file.read())
+                
+                incident.media_url = file_path
+            except Exception as e:
+                # Log error but continue with creating incident
+                print(f"Error saving file: {str(e)}")
         
-        incident.media_url = file_path
-        
-    # Handle video upload if provided
-    if video_file and video_file.filename:
-        file_extension = os.path.splitext(video_file.filename)[1]
-        video_filename = f"{uuid.uuid4()}{file_extension}"
-        video_path = os.path.join("uploads", video_filename)
-        
-        with open(video_path, "wb") as buffer:
-            buffer.write(await video_file.read())
-        
-        incident.video_url = video_path
-    
-    db.add(incident)
-    db.commit()
-    db.refresh(incident)
-    return incident
+        db.add(incident)
+        db.commit()
+        db.refresh(incident)
+        return incident
+    except Exception as e:
+        # Ensure we return a proper JSON response
+        print(f"Error creating incident: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error creating incident: {str(e)}"
+        )
 
 @router.post("/multiple", response_model=schemas.Incident)
 async def create_incident_with_multiple_files(
